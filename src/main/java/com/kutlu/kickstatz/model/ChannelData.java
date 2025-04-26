@@ -8,7 +8,7 @@ public class ChannelData {
     @JsonProperty("broadcaster_user_id")
     private int broadcasterUserId;
 
-    private Category category;
+    private CategoryMeta category;
 
     @JsonProperty("channel_id")
     private int channelId;

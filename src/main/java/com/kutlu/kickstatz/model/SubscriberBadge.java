@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 public class SubscriberBadge {
-
     private int id;
 
     @JsonProperty("channel_id")

@@ -1,6 +1,6 @@
 package com.kutlu.kickstatz.crawler;
 
-import com.kutlu.kickstatz.model.ChannelResponse;
+import com.kutlu.kickstatz.model.ChannelDetailResponse;
 import com.kutlu.kickstatz.service.KickApiService;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
@@ -24,8 +24,8 @@ public class SeleniumChannelCrawler {
     }
 
     @Scheduled(fixedDelay = 60000)
-    public List<ChannelResponse> scrapeTopChannels() {
-        List<ChannelResponse> channels = new ArrayList<>();
+    public List<ChannelDetailResponse> scrapeTopChannels() {
+        List<ChannelDetailResponse> channels = new ArrayList<>();
         try {
             log.info("Scraping top channels...");
             webDriver.get("https://kick.com/browse?sort=viewers_high_to_low");
@@ -65,11 +65,11 @@ public class SeleniumChannelCrawler {
                 String channelName = Objects.requireNonNull(element.getAttribute("href"))
                         .substring(Objects.requireNonNull(element.getAttribute("href"))
                                 .lastIndexOf("/") + 1);
-                if(!channelNames.contains(channelName)){
+                if(!channelNames.contains(channelName) && !channelName.isEmpty()) {
                     channelNames.add(channelName);
-                    ChannelResponse response = kickApiService.getChannelBySlug(channelName);
+                    ChannelDetailResponse response = kickApiService.getChannelBySlug(channelName);
 
-                    if (response == null || response.getData() == null || response.getData().isEmpty()) {
+                    if (response == null) {
                         log.warn("No data found for slug: {}", channelName);
                     } else {
                         channels.add(response);
