@@ -20,12 +20,25 @@ public class KickApiService {
     @Value("${kick.api.base-url}")
     private String baseUrl;
 
+    @Value("${kick.api.cookie}")
+    private String cookie;
+
+    public HttpHeaders buildHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.7049.115 Safari/537.36");
+        headers.set("Accept", "*/*");
+        headers.set("Cache-Control", "no-cache");
+        headers.set("Accept-Encoding", "identity");
+        headers.set("Connection", "keep-alive");
+        headers.set("Cookie", ""); // boş bile olsa ekleyelim
+        return headers;
+    }
+
     public ChannelResponse getChannelBySlug(String slug) {
         String url = baseUrl + "/channels/" + slug;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        HttpEntity<Void> entity = new HttpEntity<>(buildHeaders());
 
         try {
             ResponseEntity<ChannelResponse> response = restTemplate.exchange(

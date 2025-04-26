@@ -10,8 +10,7 @@ import org.openqa.selenium.WebElement;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -57,55 +56,28 @@ public class SeleniumChannelCrawler {
                 }
             }
 
-            List<WebElement> channelElements = webDriver.findElements(By.cssSelector("div[class*='group/card'] a"));
+            // Find all <a> elements with a title attribute
+            List<WebElement> elements = webDriver.findElements(By.cssSelector("a[title]"));
 
-            for (WebElement element : channelElements) {
-                WebElement titleElement = element.findElement(By.cssSelector("a[title]"));
-                String title = titleElement.getAttribute("title");
-                log.info("Scraping channel: {}", title);
+            Set<String> channelNames = new HashSet<>();
+            // Print the text and title attribute of each element
+            for (WebElement element : elements) {
+                String channelName = Objects.requireNonNull(element.getAttribute("href"))
+                        .substring(Objects.requireNonNull(element.getAttribute("href"))
+                                .lastIndexOf("/") + 1);
+                if(!channelNames.contains(channelName)){
+                    channelNames.add(channelName);
+                    ChannelResponse response = kickApiService.getChannelBySlug(channelName);
 
-                ChannelResponse response = kickApiService.getChannelBySlug(title);
-
-                if (response == null || response.getData() == null || response.getData().isEmpty()) {
-                    log.warn("No data found for slug: {}", title);
-                    continue;
-                } else {
-                    channels.add(response);
+                    if (response == null || response.getData() == null || response.getData().isEmpty()) {
+                        log.warn("No data found for slug: {}", channelName);
+                    } else {
+                        channels.add(response);
+                    }
                 }
+
             }
-
-            /*List<WebElement> channelElements = webDriver.findElements(By.cssSelector("a[data-testid='browse-card-link']"));
-
-            for (WebElement element : channelElements) {
-                String outerHtml = element.getAttribute("outerHTML");
-                assert outerHtml != null;
-                Document doc = Jsoup.parse(outerHtml);
-
-                Element link = doc.selectFirst("a[data-testid='browse-card-link']");
-                String slug = link != null ? link.attr("href").replace("/", "") : null;
-                log.info("Slug: {}", slug);
-
-                Element titleElement = doc.selectFirst("[data-testid='browse-card-title']");
-                String title = titleElement != null ? titleElement.text() : null;
-                log.info("Title: {}", title);
-
-                Element categoryElement = doc.selectFirst("[data-testid='browse-card-category']");
-                String category = categoryElement != null ? categoryElement.text() : null;
-                log.info("Category: {}", category);
-
-                Element viewerElement = doc.selectFirst("[data-testid='browse-card-viewers']");
-                String viewersText = viewerElement != null ? viewerElement.text().replace(" Viewers", "").replace(",", "") : "0";
-                int viewerCount = Integer.parseInt(viewersText);
-                log.info("Viewers: {}", viewerCount);
-
-                ChannelResponse response = kickApiService.getChannelBySlug(slug);
-
-                if (response == null || response.getData() == null || response.getData().isEmpty()) {
-                    log.warn("No data found for slug: {}", slug);
-                    continue;
-                }
-                channels.add(response);
-            }*/
+            log.info("Scraped {} channels", channels);
         } catch (Exception e) {
             log.error("Error while scraping channels: {}", e.getMessage(), e);
         }
