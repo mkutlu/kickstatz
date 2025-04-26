@@ -1,0 +1,510 @@
+{
+	"info": {
+		"_postman_id": "ffb27fd2-ae47-4bf2-b6ae-604323fbcd50",
+		"name": "KickAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6400468"
+	},
+	"item": [
+		{
+			"name": "App Access Token Endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"\r",
+							"if (response.access_token) {\r",
+							"    let bearerToken = \"Bearer \" + response.access_token;\r",
+							"    pm.collectionVariables.set(\"Authorization\", bearerToken);\r",
+							"    console.log(\"Authorization header has been set as a collection variable.\");\r",
+							"} else {\r",
+							"    console.warn(\"Access token not found in the response.\");\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is less than 500ms\", function () {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Verify the content type is 'application/json'\", function () {\r",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields - access_token, expires_in, and token_type\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.access_token).to.exist;\r",
+							"    pm.expect(responseData.expires_in).to.exist;\r",
+							"    pm.expect(responseData.token_type).to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Access token is a non-empty string\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData.access_token).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Access token should not be empty\");\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "01JSNFMSWFP7SNDS36EQXDQQZQ",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "8281b45a39e87a38557f19369991a78d18b734bc88c70b086b01c8133f7a75c5",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{Kick-OAuth-URL}}/oauth/token",
+					"host": [
+						"{{Kick-OAuth-URL}}"
+					],
+					"path": [
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Livestreams",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"  pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is less than 1000ms\", function () {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Validate the schema of the response data\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.have.property('data').that.is.an('array').with.lengthOf.at.least(1);\r",
+							"  responseData.data.forEach(function(item) {\r",
+							"    pm.expect(item).to.have.property('broadcaster_user_id').that.is.a('number');\r",
+							"    pm.expect(item).to.have.property('channel_id').that.is.a('number');\r",
+							"    pm.expect(item).to.have.property('slug').that.is.a('string');\r",
+							"    pm.expect(item).to.have.property('stream_title').that.is.a('string');\r",
+							"    pm.expect(item).to.have.property('language').that.is.a('string');\r",
+							"    pm.expect(item).to.have.property('has_mature_content').that.is.a('boolean');\r",
+							"    pm.expect(item).to.have.property('viewer_count').that.is.a('number');\r",
+							"    pm.expect(item).to.have.property('thumbnail').that.is.a('string');\r",
+							"    pm.expect(item).to.have.property('started_at').that.is.a('string');\r",
+							"    pm.expect(item).to.have.property('category').that.is.an('object');\r",
+							"    pm.expect(item.category).to.have.property('id').that.is.a('number');\r",
+							"    pm.expect(item.category).to.have.property('name').that.is.a('string');\r",
+							"    pm.expect(item.category).to.have.property('thumbnail').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Each element in the 'data' array contains the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.data).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"    responseData.data.forEach(function(element) {\r",
+							"        pm.expect(element).to.have.property('broadcaster_user_id').that.is.a('number');\r",
+							"        pm.expect(element).to.have.property('channel_id').that.is.a('number');\r",
+							"        pm.expect(element).to.have.property('slug').that.is.a('string');\r",
+							"        pm.expect(element).to.have.property('stream_title').that.is.a('string');\r",
+							"        pm.expect(element).to.have.property('language').that.is.a('string');\r",
+							"        pm.expect(element).to.have.property('has_mature_content').that.is.a('boolean');\r",
+							"        pm.expect(element).to.have.property('viewer_count').that.is.a('number');\r",
+							"        pm.expect(element).to.have.property('thumbnail').that.is.a('string');\r",
+							"        pm.expect(element).to.have.property('started_at').that.is.a('string');\r",
+							"        pm.expect(element).to.have.property('category').that.is.an('object');\r",
+							"    });\r",
+							"});\r",
+							"var template = `\r",
+							"<style type=\"text/css\">\r",
+							"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}\r",
+							"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}\r",
+							"    .tftable tr {background-color:#ffffff;}\r",
+							"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}\r",
+							"    .tftable tr:hover {background-color:#e0ffff;}\r",
+							"</style>\r",
+							"\r",
+							"<table class=\"tftable\" border=\"1\">\r",
+							"    <tr>\r",
+							"        <th>Broadcaster User ID</th>\r",
+							"        <th>Channel ID</th>\r",
+							"        <th>Stream Title</th>\r",
+							"        <th>Language</th>\r",
+							"        <th>Viewer Count</th>\r",
+							"        <th>Category Name</th>\r",
+							"    </tr>\r",
+							"    \r",
+							"    {{#each response.data}}\r",
+							"        <tr>\r",
+							"            <td>{{broadcaster_user_id}}</td>\r",
+							"            <td>{{channel_id}}</td>\r",
+							"            <td>{{stream_title}}</td>\r",
+							"            <td>{{language}}</td>\r",
+							"            <td>{{viewer_count}}</td>\r",
+							"            <td>{{category.name}}</td>\r",
+							"        </tr>\r",
+							"    {{/each}}\r",
+							"</table>\r",
+							"`;\r",
+							"\r",
+							"function constructVisualizerPayload() {\r",
+							"    return {response: pm.response.json()}\r",
+							"}\r",
+							"\r",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{Kick-API-URL-V1}}/livestreams?broadcaster_user_id&category_id&language&limit&sort",
+					"host": [
+						"{{Kick-API-URL-V1}}"
+					],
+					"path": [
+						"livestreams"
+					],
+					"query": [
+						{
+							"key": "broadcaster_user_id",
+							"value": null
+						},
+						{
+							"key": "category_id",
+							"value": null
+						},
+						{
+							"key": "language",
+							"value": null
+						},
+						{
+							"key": "limit",
+							"value": null
+						},
+						{
+							"key": "sort",
+							"value": null
+						}
+					]
+				},
+				"description": "### Retrieve Livestreams\n\nThis endpoint allows you to retrieve a list of livestreams based on specified parameters.\n\n#### Request Parameters\n\n- `broadcaster_user_id` (optional) - The ID of the broadcaster user.\n    \n- `category_id` (optional) - The ID of the category.\n    \n- `language` (optional) - The language of the livestream.\n    \n- `limit` (optional) - The maximum number of livestreams to retrieve.\n    \n- `sort` (optional) - The sorting criteria for the livestreams.\n    \n\n#### Response\n\nUpon a successful request, the server responds with a status code of 200 and a JSON object containing an array of livestream data. Each livestream object includes:\n\n- `broadcaster_user_id` - The ID of the broadcaster user.\n    \n- `channel_id` - The ID of the livestream channel.\n    \n- `slug` - The slug of the livestream.\n    \n- `stream_title` - The title of the livestream.\n    \n- `language` - The language of the livestream.\n    \n- `has_mature_content` - Indicates if the livestream contains mature content.\n    \n- `viewer_count` - The current number of viewers.\n    \n- `thumbnail` - URL of the livestream thumbnail.\n    \n- `started_at` - Timestamp indicating when the livestream started.\n    \n- `category` - An object containing the ID, name, and thumbnail of the livestream category.\n    \n\n#### Example\n\n``` json\n{\n    \"data\": [\n        {\n            \"broadcaster_user_id\": 0,\n            \"channel_id\": 0,\n            \"slug\": \"\",\n            \"stream_title\": \"\",\n            \"language\": \"\",\n            \"has_mature_content\": true,\n            \"viewer_count\": 0,\n            \"thumbnail\": \"\",\n            \"started_at\": \"\",\n            \"category\": {\n                \"id\": 0,\n                \"name\": \"\",\n                \"thumbnail\": \"\"\n            }\n        }\n    ],\n    \"message\": \"\"\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is within an acceptable range\", function () {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(300);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"User data has required fields - user_id, name, and profile_picture\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.data).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.data.forEach(function(user) {\r",
+							"        pm.expect(user).to.have.property('user_id');\r",
+							"        pm.expect(user).to.have.property('name');\r",
+							"        pm.expect(user).to.have.property('profile_picture');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{Kick-API-URL-V1}}/users?id=3",
+					"host": [
+						"{{Kick-API-URL-V1}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "3"
+						}
+					]
+				},
+				"description": "### Get User by ID\n\nThis endpoint retrieves user information based on the provided user ID.\n\n#### Request\n\n- Method: GET\n    \n- URL: `{{Kick-API-URL-V1}}/users`\n    \n- Query Parameters:\n    \n    - `id` (integer, required) - The ID of the user to retrieve.\n        \n\n#### Response\n\nThe response will be a JSON object with the following schema:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"data\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"user_id\": {\n            \"type\": \"integer\"\n          },\n          \"name\": {\n            \"type\": \"string\"\n          },\n          \"email\": {\n            \"type\": \"string\"\n          },\n          \"profile_picture\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    },\n    \"message\": {\n      \"type\": \"string\"\n    }\n  }\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Channels",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required data fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.data).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"    responseData.data.forEach(function(channel) {\r",
+							"        pm.expect(channel).to.have.property('broadcaster_user_id');\r",
+							"        pm.expect(channel).to.have.property('slug');\r",
+							"        pm.expect(channel).to.have.property('channel_description');\r",
+							"        pm.expect(channel).to.have.property('banner_picture');\r",
+							"        pm.expect(channel).to.have.property('stream');\r",
+							"        pm.expect(channel).to.have.property('stream_title');\r",
+							"        pm.expect(channel).to.have.property('category');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Stream start time is in a valid date format\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    responseData.data.forEach(function(channel) {\r",
+							"        pm.expect(channel.stream.start_time).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/);\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"  pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{Kick-API-URL-V1}}/channels?broadcaster_user_id=1",
+					"host": [
+						"{{Kick-API-URL-V1}}"
+					],
+					"path": [
+						"channels"
+					],
+					"query": [
+						{
+							"key": "broadcaster_user_id",
+							"value": "1"
+						},
+						{
+							"key": "slug",
+							"value": null,
+							"disabled": true
+						}
+					]
+				},
+				"description": "### Request Description\n\nThis endpoint makes an HTTP GET request to retrieve channel information based on the provided broadcaster user ID.\n\n### Request Body\n\nThis request does not require a request body.\n\n### Response Body\n\nThe response is in the form of a JSON schema and includes the following fields:\n\n- `data` (array): An array containing channel information, including `broadcaster_user_id`, `slug`, `channel_description`, `banner_picture`, `stream`, `stream_title`, and `category`.\n    \n    - `broadcaster_user_id` (number): The ID of the broadcaster user.\n        \n    - `slug` (string): The slug of the channel.\n        \n    - `channel_description` (string): Description of the channel.\n        \n    - `banner_picture` (string): URL of the banner picture for the channel.\n        \n    - `stream` (object): Information about the stream, including `url`, `key`, `is_live`, `is_mature`, `language`, `start_time`, `viewer_count`, and `thumbnail`.\n        \n        - `url` (string): URL of the stream.\n            \n        - `key` (string): Key of the stream.\n            \n        - `is_live` (boolean): Indicates if the stream is live.\n            \n        - `is_mature` (boolean): Indicates if the stream is mature.\n            \n        - `language` (string): Language of the stream.\n            \n        - `start_time` (string): Start time of the stream.\n            \n        - `viewer_count` (number): Number of viewers for the stream.\n            \n        - `thumbnail` (string): URL of the stream thumbnail.\n            \n    - `stream_title` (string): Title of the stream.\n        \n    - `category` (object): Information about the category, including `id`, `name`, and `thumbnail`.\n        \n        - `id` (number): The ID of the category.\n            \n        - `name` (string): Name of the category.\n            \n        - `thumbnail` (string): URL of the category thumbnail.\n            \n- `message` (string): A message related to the response.\n    \n\n### Response Status\n\nThe response status is 200, indicating a successful request.\n\n### Response Content-Type\n\nThe response content type is `application/json`."
+			},
+			"response": []
+		},
+		{
+			"name": "Patch Channels",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"category_id\": 1,\r\n    \"stream_title\": \"text\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{Kick-API-URL-V1}}/channels",
+					"host": [
+						"{{Kick-API-URL-V1}}"
+					],
+					"path": [
+						"channels"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Chat Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"broadcaster_user_id\": 1,\r\n    \"content\": \"text\",\r\n    \"reply_to_message_id\": \"text\",\r\n    \"type\": \"user\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{Kick-API-URL-V1}}/chat",
+					"host": [
+						"{{Kick-API-URL-V1}}"
+					],
+					"path": [
+						"chat"
+					]
+				},
+				"description": "This endpoint allows you to send a chat message. The request should be sent as an HTTP POST to {{Kick-API-URL-V1}}/chat. The request body should be in raw JSON format and include the following parameters:\n\n- \"broadcaster_user_id\": The ID of the broadcaster user.\n    \n- \"content\": The content of the message.\n    \n- \"reply_to_message_id\": The ID of the message to which this message is a reply (optional).\n    \n- \"type\": The type of message, in this case, \"user\".\n    \n\n### Request Body\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| broadcaster_user_id | Number | The ID of the broadcaster user |\n| content | String | The content of the message |\n| reply_to_message_id | String | The ID of the message to which this message is a reply (optional) |\n| type | String | The type of message |\n\nThe response to this request will have a status code of 401 and a content type of application/json. The response body will contain:\n\n- \"data\": An empty object indicating no data is returned.\n    \n- \"message\": An empty string indicating no specific message is provided.\n    \n\n### Response\n\n- Status: 200,401,403,500\n    \n- Content-Type: application/json\n    \n- Body: {\"data\":{},\"message\":\"\"}"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Categories",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"description": "### GET /categories\n\nThis endpoint retrieves a list of categories based on the provided query parameter.\n\n#### Request\n\n- Method: GET\n    \n- URL: `{{Kick-API-URL-V1}}/categories`\n    \n- Query Parameters:\n    \n    - `q` (string, required): The query parameter for filtering categories.\n        \n    - `page` (integer, required): The page number for paginating the results.\n        \n\n#### Response\n\nThe response is a JSON object with the following schema:\n\n``` json\n{\n  \"data\": [\n    {\n      \"id\": \"integer\",\n      \"name\": \"string\",\n      \"thumbnail\": \"string\"\n    }\n  ],\n  \"message\": \"string\"\n}\n\n ```\n\n- `data` (array): An array of category objects, each containing an `id` (integer), `name` (string), and `thumbnail` (string).\n    \n- `message` (string): A message related to the response."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Authorization",
+			"value": ""
+		},
+		{
+			"key": "Kick-API-URL-V1",
+			"value": "https://api.kick.com/public/v1",
+			"type": "string"
+		},
+		{
+			"key": "Kick-OAuth-URL",
+			"value": "https://id.kick.com",
+			"type": "string"
+		}
+	]
+}

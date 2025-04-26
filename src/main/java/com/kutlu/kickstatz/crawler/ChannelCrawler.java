@@ -41,7 +41,7 @@ public class ChannelCrawler {
         this.kickOAuthService = kickOAuthService;
     }
 
-    @Scheduled(fixedDelay = 60000)
+    //@Scheduled(fixedDelay = 60000)
     public void updateOnlineChannels() {
         logger.info("Starting to update online channels...");
         try {
